@@ -4,42 +4,17 @@ on:
 
 
 jobs:
-  login:
-    runs-on: self-hosted
-    steps:
-      - name: cd into repo
-        uses: actions/checkout@v2
-      - name: Down service
-        run: make login --environment-overrides GHCR_TOKEN=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 USER_NAME=fargus3222
-
-
-
   build:
     runs-on: self-hosted
-    needs: login
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
       - name: login
         run: make build --environment-overrides IMAGE_NAME=${{ github.event.repository.name }}
-
-
-
-  tag:
-    runs-on: self-hosted
-    needs: build
-    steps:
-      - name: cd into repo
-        uses: actions/checkout@v2
+        
       - name: build
         run: make tag --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ github.sha }}
 
-
-  push:
-    runs-on: self-hosted
-    needs: tag
-    steps:
-      - name: cd into repo
-        uses: actions/checkout@v2
       - name: push
-        run: make push --environment-overrides IMAGE_NAME=test IMAGE_TAG=123 
+        run: make push --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ github.sha }}
