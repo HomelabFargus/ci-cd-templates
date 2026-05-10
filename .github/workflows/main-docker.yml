@@ -1,9 +1,24 @@
 name: Docker main ci-cd tmpl
 
 on:
-  push:
-    branches:
-      - master
+  workflow_call:
+
+    inputs:
+      context:
+        type: string
+        required: false
+        default: "."
+      dockerfile:
+        type: string
+        required: false
+        default: "./Dockerfile"
+      image_name:
+        type: string
+        required: false
+
+    secrets:
+      GHCR_TOKEN:
+        required: false
 
 permissions:
   contents: read
@@ -26,7 +41,13 @@ jobs:
         shell: bash
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
-          repo="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
+
+          if [ -n "${{ inputs.image_name }}" ]; then
+            repo="$(echo '${{ inputs.image_name }}' | tr '[:upper:]' '[:lower:]')"
+          else
+            repo="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
+          fi
+
           echo "image=ghcr.io/$owner/$repo" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
@@ -50,13 +71,13 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Build and optionally push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./Dockerfile
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
