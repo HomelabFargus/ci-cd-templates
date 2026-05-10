@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Get short sha
-        run : IMAGE_TAG_SHA="${{ github.sha }}" && export 'IMAGE_TAG_SHORT_SHA="${IMAGE_TAG_SHA:0:6}"' > .bashrc && echo $IMAGE_TAG_SHORT_SHA
+        run : IMAGE_TAG_SHA="${{ github.sha }}" && export IMAGE_TAG_SHORT_SHA="${IMAGE_TAG_SHA:0:6}" > .bashrc && echo $IMAGE_TAG_SHORT_SHA
 
       - name: login
         run: make login --environment-overrides GHCR_TOKEN=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  USER_NAME=fargus3222
