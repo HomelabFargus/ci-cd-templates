@@ -32,7 +32,7 @@ jobs:
       - name: cd into repo
         uses: actions/checkout@v2
       - name: build
-        run: make build --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ github.sha }}
+        run: make tag --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ github.sha }}
 
 
   push:
