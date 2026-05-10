@@ -10,6 +10,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Get short sha
+        run : IMAGE_TAG_SHA="${{ github.sha }}" && echo $IMAGE_TAG_SHA
+
       - name: login
         run: make login --environment-overrides GHCR_TOKEN=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  USER_NAME=fargus3222
 
@@ -17,7 +20,7 @@ jobs:
         run: make build --environment-overrides IMAGE_NAME=${{ github.event.repository.name }}
         
       - name: build
-        run: make tag --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ github.sha::7 }}
+        run: make tag --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(IMAGE_TAG_SHA)
 
       - name: push
-        run: make push --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ github.sha::7 }}
+        run: make push --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(IMAGE_TAG_SHA)
