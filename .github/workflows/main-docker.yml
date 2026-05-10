@@ -2,7 +2,6 @@ name: Docker main ci-cd tmpl
 
 on:
   workflow_call:
-
     inputs:
       context:
         type: string
@@ -16,10 +15,6 @@ on:
         type: string
         required: false
 
-    secrets:
-      GHCR_TOKEN:
-        required: false
-
 permissions:
   contents: read
   packages: write
@@ -31,55 +26,111 @@ concurrency:
 jobs:
   docker:
     runs-on: self-hosted
+    env:
+      REGISTRY: ghcr.io
+      REGISTRY_TOKEN: ${{ vars.GHCR_TOKEN }}
+      BUILD_CONTEXT: ${{ inputs.context }}
+      BUILD_DOCKERFILE: ${{ inputs.dockerfile }}
+      BUILD_IMAGE_NAME: ${{ inputs.image_name }}
+      REPOSITORY: ${{ github.repository }}
+      REPOSITORY_OWNER: ${{ github.repository_owner }}
+      ACTOR: ${{ github.actor }}
+      REF_NAME: ${{ github.ref_name }}
+      REF_TYPE: ${{ github.ref_type }}
+      SHA: ${{ github.sha }}
+      EVENT_NAME: ${{ github.event_name }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      PR_NUMBER: ${{ github.event.pull_request.number || '' }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Prepare image coordinates
-        id: prep
+      - name: Build and publish image with docker cli
         shell: bash
         run: |
-          owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          set -euo pipefail
 
-          if [ -n "${{ inputs.image_name }}" ]; then
-            repo="$(echo '${{ inputs.image_name }}' | tr '[:upper:]' '[:lower:]')"
-          else
-            repo="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
+          if [ -z "${REGISTRY_TOKEN:-}" ]; then
+            echo "Repository variable GHCR_TOKEN is not set"
+            exit 1
           fi
 
-          echo "image=ghcr.io/$owner/$repo" >> "$GITHUB_OUTPUT"
+          sanitize_tag() {
+            echo "$1" \
+              | tr '[:upper:]' '[:lower:]' \
+              | sed -E 's/[^a-z0-9._-]+/-/g; s/^-+//; s/-+$//'
+          }
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+          owner="$(echo "$REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
 
-      - name: Generate Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ steps.prep.outputs.image }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=ref,event=pr
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
+          if [ -n "${BUILD_IMAGE_NAME:-}" ]; then
+            repo_name="$(echo "$BUILD_IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+          else
+            repo_name="$(echo "${REPOSITORY#*/}" | tr '[:upper:]' '[:lower:]')"
+          fi
 
-      - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+          image="${REGISTRY}/${owner}/${repo_name}"
+          short_sha="${SHA::12}"
 
-      - name: Build and optionally push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ inputs.context }}
-          file: ${{ inputs.dockerfile }}
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          workdir="${RUNNER_TEMP}/docker-build-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$workdir"
+          mkdir -p "$workdir"
+
+          git init "$workdir"
+          cd "$workdir"
+          git remote add origin "https://x-access-token:${REGISTRY_TOKEN}@github.com/${REPOSITORY}.git"
+          git fetch --depth=1 origin "${SHA}"
+          git checkout --detach FETCH_HEAD
+
+          tags=()
+
+          if [ "$REF_TYPE" = "branch" ]; then
+            branch_tag="$(sanitize_tag "$REF_NAME")"
+            if [ -n "$branch_tag" ]; then
+              tags+=("${image}:${branch_tag}")
+            fi
+          fi
+
+          if [ "$REF_TYPE" = "tag" ]; then
+            release_tag="$(sanitize_tag "$REF_NAME")"
+            if [ -n "$release_tag" ]; then
+              tags+=("${image}:${release_tag}")
+            fi
+          fi
+
+          if [ -n "${PR_NUMBER:-}" ]; then
+            tags+=("${image}:pr-${PR_NUMBER}")
+          fi
+
+          tags+=("${image}:sha-${short_sha}")
+
+          if [ "$REF_NAME" = "$DEFAULT_BRANCH" ]; then
+            tags+=("${image}:latest")
+          fi
+
+          mapfile -t unique_tags < <(printf '%s\n' "${tags[@]}" | awk '!seen[$0]++')
+
+          echo "$REGISTRY_TOKEN" | docker login "$REGISTRY" -u "$ACTOR" --password-stdin
+
+          cache_from_args=()
+          if docker pull "${image}:latest"; then
+            cache_from_args+=(--cache-from "${image}:latest")
+          fi
+
+          build_args=(docker build --pull -f "$BUILD_DOCKERFILE")
+
+          for tag in "${unique_tags[@]}"; do
+            build_args+=(-t "$tag")
+          done
+
+          build_args+=("${cache_from_args[@]}")
+          build_args+=("$BUILD_CONTEXT")
+
+          "${build_args[@]}"
+
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "Pull request event detected, skip docker push"
+            exit 0
+          fi
+
+          for tag in "${unique_tags[@]}"; do
+            docker push "$tag"
+          done
