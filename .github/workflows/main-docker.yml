@@ -19,14 +19,11 @@ jobs:
       - name: build
         run: make build --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
         
-      - name: tag
-        run: make tag --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=latest
+      - name: push_tag
+        run: make push_tag --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
 
-      - name: docker ps
-        run: docker images -a
-
-      - name: push
-        run: make push --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
+      - name: push_latest
+        run: make push_latest --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
 
       - name: cd
         run: make cd --environment-overrides GHCR_TOKEN=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 MANIFEST_PATH=${{vars.MANIFEST_PATH}} CONTAINER_NAME=${{vars.CONTAINER_NAME}} 
