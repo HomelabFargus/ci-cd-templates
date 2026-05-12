@@ -20,7 +20,7 @@ jobs:
         run: make build --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
         
       - name: tag
-        run: make tag --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
+        run: make tag --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} latest
 
       - name: push
         run: make push --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
