@@ -15,7 +15,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Get short sha
         id: sha
         run: |
@@ -50,9 +49,8 @@ jobs:
     environment: CD
     runs-on: self-hosted
     steps:
-      - name: debug vars
-        run: |
-          echo "vars.IS_DEPLOYDED=${{ vars.IS_DEPLOYDED }}"
+      - name: Checkout repo
+        uses: actions/checkout@v4
       - name: cd
         if: ${{ vars.IS_DEPLOYDED == 'true' }}
         run: make cd --environment-overrides GITHUB_TOKEN=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 MANIFEST_PATH_CI=${{ vars.MANIFEST_PATH }} CONTAINER_NAME=${{ vars.CONTAINER_NAME }} IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
