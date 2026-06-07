@@ -31,4 +31,4 @@ jobs:
         run: make push_latest --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
 
       - name: cd
-        run: make cd --environment-overrides GHCR_TOKEN=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 MANIFEST_PATH_CI=${{ vars.MANIFEST_PATH }} CONTAINER_NAME=${{ vars.CONTAINER_NAME }}:$(cat tag) 
+        run: make cd --environment-overrides GHCR_TOKEN=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 MANIFEST_PATH_CI=${{ vars.MANIFEST_PATH }} CONTAINER_NAME=${{ vars.CONTAINER_NAME }} MAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
