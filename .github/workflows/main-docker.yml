@@ -31,4 +31,5 @@ jobs:
         run: make push_latest --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
 
       - name: cd
+        if: ${{ vars.IS_DEPLOYDED == 'true' }}
         run: make cd --environment-overrides GITHUB_TOKEN=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 MANIFEST_PATH_CI=${{ vars.MANIFEST_PATH }} CONTAINER_NAME=${{ vars.CONTAINER_NAME }} IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
