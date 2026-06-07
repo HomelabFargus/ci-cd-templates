@@ -17,6 +17,10 @@ jobs:
       - name: login
         run: make login --environment-overrides GHCR_TOKEN=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  USER_NAME=fargus3222
 
+
+      - name: pull cache
+        run: docker pull ${{ github.event.repository.name }}:latest
+
       - name: build
         run: make build --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
         
