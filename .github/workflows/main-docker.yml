@@ -38,23 +38,14 @@ jobs:
       - name: build
         run: make build --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
 
-
-  push:
-    needs: [Get_short_sha, build]
-    runs-on: self-hosted
-    environment: CD
-    steps:
-
       - name: push_tag
         run: make push_tag --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
 
       - name: push_latest
         run: make push_latest --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
 
-
-
   cd:
-    needs: [Get_short_sha, build, push]
+    needs: [Get_short_sha, build]
     runs-on: self-hosted
     if: ${{ vars.IS_DEPLOYDED == 'true' }}
     environment: CD
