@@ -49,7 +49,7 @@ jobs:
     needs: [Get_short_sha, build]
     environment: CD
     runs-on: self-hosted
-    if: ${{ env.IS_DEPLOYDED == 'true' }}
+    if: ${{ vars.IS_DEPLOYDED == 'true' }}
     environment: CD
     steps:
       - name: cd
