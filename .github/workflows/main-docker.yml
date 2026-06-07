@@ -19,7 +19,7 @@ jobs:
 
 
       - name: pull cache
-        run: docker pull ${{ github.event.repository.name }}:latest
+        run: docker pull ghcr.io/homelabfargus/${{ github.event.repository.name }}:latest
 
       - name: build
         run: make build --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=$(cat tag)
