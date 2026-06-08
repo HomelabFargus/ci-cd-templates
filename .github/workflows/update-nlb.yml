@@ -4,8 +4,6 @@ on:
 
 
 jobs:
-
-
   Down:
     runs-on: nlb
     steps:
@@ -22,8 +20,8 @@ jobs:
         run: make clean
 
   Up:
-  runs-on: nlb
-  steps:
-    - uses: actions/checkout@v4
-    - name: up
-      run: make up
+    runs-on: nlb
+    steps:
+      - uses: actions/checkout@v4
+      - name: up
+        run: make up
