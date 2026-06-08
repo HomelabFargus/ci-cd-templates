@@ -32,7 +32,7 @@ jobs:
         run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }} USER_NAME=fargus3222
 
       - name: pull cache
-        run: docker pull ghcr.io/homelabfargus/${{ github.event.repository.name }}:latest
+        run: docker pull ghcr.io/homelabfargus/${{ github.event.repository.name }}:latest || echo "No latest image cache found, building without cache"
 
       - name: build
         run: make build --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
