@@ -13,6 +13,7 @@ jobs:
 
 
   Clean:
+    needs: Down
     runs-on: nlb
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +21,7 @@ jobs:
         run: make clean
 
   Up:
+    needs: Clean
     runs-on: nlb
     steps:
       - uses: actions/checkout@v4
