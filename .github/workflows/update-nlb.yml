@@ -1,0 +1,29 @@
+name: Deploy
+on:
+  workflow_call:
+
+
+jobs:
+
+
+  Down:
+    runs-on: nlb
+    steps:
+      - uses: actions/checkout@v4
+      - name: down
+        run: make down
+
+
+  Clean:
+    runs-on: nlb
+    steps:
+      - uses: actions/checkout@v4
+      - name: clean
+        run: make clean
+
+  Up:
+  runs-on: nlb
+  steps:
+    - uses: actions/checkout@v4
+    - name: up
+      run: make up
