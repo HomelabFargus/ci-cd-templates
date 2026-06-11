@@ -55,3 +55,17 @@ jobs:
       - name: cd
         if: ${{ vars.IS_DEPLOYDED == 'true' }}
         run: make cd --environment-overrides GITHUB_TOKEN=${{ vars.TOKEN }} MANIFEST_PATH_CI=${{ vars.MANIFEST_PATH }} CONTAINER_NAME=${{ vars.CONTAINER_NAME }} IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
+
+
+  Deploy_on_outpost:
+    needs: [Get_short_sha, build]
+    environment: CD
+    runs-on: nlb
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: login
+        run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }}  USER_NAME=fargus3222
+      - name: cd
+        if: ${{ vars.IS_OUTOF_LAB == 'true' }}
+        run: make up
