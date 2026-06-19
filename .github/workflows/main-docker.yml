@@ -7,7 +7,7 @@ jobs:
 
 
   Get_short_sha:
-    runs-on: self-hosted
+    runs-on: k8s
 
     outputs:
       image_tag: ${{ steps.sha.outputs.image_tag }}
@@ -22,7 +22,7 @@ jobs:
 
   build:
     needs: Get_short_sha
-    runs-on: self-hosted
+    runs-on: k8s
     environment: CD
     steps:
       - name: Checkout repo
@@ -46,7 +46,7 @@ jobs:
   cd:
     needs: [Get_short_sha, build]
     environment: CD
-    runs-on: self-hosted
+    runs-on: k8s
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
