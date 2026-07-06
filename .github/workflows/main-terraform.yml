@@ -16,7 +16,7 @@ jobs:
         run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }} USER_NAME=fargus3222
 
       - name: pull cache
-        run: docker pull ghcr.io/homelabfargus/baseimages/terraform:latest
+        run: docker pull ghcr.io/homelabfargus/terraform:latest
 
       - name: plan
         run: make plan
