@@ -6,7 +6,6 @@ on:
 jobs:
 
   Plan:
-    needs: Get_short_sha
     runs-on: k8s
     environment: CD
     steps:
