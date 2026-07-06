@@ -19,7 +19,7 @@ jobs:
         run: docker pull ghcr.io/homelabfargus/terraform:latest
 
       - name: plan
-        run: make plan --environment-overrides REPO=${{ vars.REPO }} TERRAFORM_SUBDIR=${{ vars.TERRAFORM_SUBDIR }} TERRAFORM_IMAGE=ghcr.io/homelabfargus/terraform:latest TERRAFORM_ARGS=${{ vars.TERRAFORM_ARGS }} GITHUB_USERNAME= ${{ vars.GITHUB_USERNAME }} GITHUB_TOKEN=${{ vars.TOKEN }}
+        run: make plan --environment-overrides REPO=${{ vars.REPO }} TERRAFORM_SUBDIR=${{ vars.TERRAFORM_SUBDIR }} TERRAFORM_IMAGE=ghcr.io/homelabfargus/terraform:latest TERRAFORM_ARGS=${{ vars.TERRAFORM_ARGS }} GITHUB_USERNAME=${{ vars.USERNAME }} GITHUB_TOKEN=${{ vars.TOKEN }}
 
   Apply:
     needs: Plan
