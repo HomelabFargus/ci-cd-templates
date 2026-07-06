@@ -1,0 +1,39 @@
+name: Deploy
+on:
+  workflow_call:
+
+
+jobs:
+
+  Plan:
+    needs: Get_short_sha
+    runs-on: k8s
+    environment: CD
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: login
+        run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }} USER_NAME=fargus3222
+
+      - name: pull cache
+        run: docker pull ghcr.io/homelabfargus/baseimages/terraform:latest
+
+      - name: plan
+        run: make plan
+
+
+  Apply:
+    needs: Plan
+    environment: CD
+    runs-on: k8s
+    steps:
+      - name: Checkout repo
+        if: ${{ vars.IS_DEPLOYDED == 'true' }}
+        uses: actions/checkout@v4
+      - name: login
+        if: ${{ vars.IS_DEPLOYDED == 'true' }}
+        run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }}  USER_NAME=fargus3222
+      - name: apply
+        if: ${{ vars.IS_DEPLOYDED == 'true' }}
+        run: make apply
