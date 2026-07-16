@@ -1,0 +1,71 @@
+name: Deploy
+on:
+  workflow_call:
+
+
+jobs:
+
+
+  Get_short_sha:
+    runs-on: k8s
+
+    outputs:
+      image_tag: ${{ steps.sha.outputs.image_tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get short sha
+        id: sha
+        run: |
+          echo "image_tag=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+
+
+  build:
+    needs: Get_short_sha
+    runs-on: k8s
+    environment: CD
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: login
+        run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }} USER_NAME=fargus3222
+
+      - name: pull cache
+        run: docker pull ghcr.io/homelabfargus/${{ github.event.repository.name }}/${{ github.ref_name }}:latest || echo "No latest image cache found, building without cache"
+
+      - name: build
+        run: make build --environment-overrides IMAGE_NAME=${{ github.event.repository.name }}/${{ github.ref_name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
+
+      - name: push_tag
+        run: make push_tag --environment-overrides IMAGE_NAME=${{ github.event.repository.name }}/${{ github.ref_name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
+
+      - name: push_latest
+        run: make push_latest --environment-overrides IMAGE_NAME=${{ github.event.repository.name }}/${{ github.ref_name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
+
+  cd:
+    needs: [Get_short_sha, build]
+    environment: CD
+    runs-on: k8s
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: login
+        run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }}  USER_NAME=fargus3222
+      - name: cd
+        if: ${{ vars.IS_DEPLOYDED == 'true' }}
+        run: make cd --environment-overrides GITHUB_TOKEN=${{ vars.TOKEN }} MANIFEST_PATH_CI=${{ vars.MANIFEST_PATH }} CONTAINER_NAME=${{ vars.CONTAINER_NAME }} IMAGE_NAME=${{ github.event.repository.name }}/${{ github.ref_name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
+
+
+  Deploy_on_outpost:
+    needs: [Get_short_sha, build]
+    environment: CD
+    runs-on: nlb
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: login
+        run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }}  USER_NAME=fargus3222
+      - name: cd
+        if: ${{ vars.IS_OUTOF_LAB == 'true' }}
+        run: make up
