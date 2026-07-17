@@ -54,7 +54,7 @@ jobs:
         run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }}  USER_NAME=fargus3222
       - name: cd
         if: ${{ vars.IS_DEPLOYDED == 'true' }}
-        run: make cd --environment-overrides GITHUB_TOKEN=${{ vars.TOKEN }} MANIFEST_PATH_CI=HelmCharts/${{ github.event.repository.name }}/${{ github.ref_name }/values.yaml CONTAINER_NAME=${{ vars.CONTAINER_NAME }} IMAGE_NAME=${{ github.event.repository.name }}/${{ github.ref_name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
+        run: make cd --environment-overrides GITHUB_TOKEN=${{ vars.TOKEN }} MANIFEST_PATH_CI=HelmCharts/${{ github.event.repository.name }}/${{ github.ref_name }}/values.yaml CONTAINER_NAME=${{ vars.CONTAINER_NAME }} IMAGE_NAME=${{ github.event.repository.name }}/${{ github.ref_name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
 
 
   Deploy_on_outpost:
