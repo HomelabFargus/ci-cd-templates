@@ -6,7 +6,7 @@ on:
 jobs:
 
   Plan:
-    runs-on: self-hosted
+    runs-on: k8s
     environment: CD
     steps:
       - name: Checkout repo
@@ -24,7 +24,7 @@ jobs:
   Apply:
     needs: Plan
     environment: CD
-    runs-on: self-hosted
+    runs-on: k8s
     steps:
       - name: Checkout repo
         if: ${{ vars.IS_DEPLOYDED == 'true' }}
