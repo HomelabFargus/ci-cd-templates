@@ -60,7 +60,7 @@ jobs:
   Deploy_on_outpost:
     needs: [Get_short_sha, build]
     environment: CD
-    runs-on: nlb
+    runs-on: nlb-2
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
