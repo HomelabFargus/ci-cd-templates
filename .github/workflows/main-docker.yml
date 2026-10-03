@@ -43,14 +43,31 @@ jobs:
       - name: push_latest
         run: make push_latest --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
 
+
+  migrations:
+      needs: migrate_postgres
+      runs-on: k8s
+      environment: CD
+      steps:
+        - name: Checkout repo
+          if: ${{ vars.IS_DB_MIGRATE == 'true' }}
+          uses: actions/checkout@v4
+
+        - name: migration postgres
+          if: ${{ vars.IS_DB_MIGRATE == 'true' }}
+          run: make migrate --environment-overrides PGSSLMODE=disable PGPORT=5432 PGHOST=${{ vars.postgres-host }} PGDATABASE=${{ vars.postgres-database }} PGUSER=${{ vars.postgres-user }} PGPASSWORD=${{ vars.postgres-password }}
+
+
   cd:
     needs: [Get_short_sha, build]
     environment: CD
     runs-on: k8s
     steps:
       - name: Checkout repo
+        if: ${{ vars.IS_DEPLOYDED == 'true' }}
         uses: actions/checkout@v4
       - name: login
+        if: ${{ vars.IS_DEPLOYDED == 'true' }}
         run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }}  USER_NAME=fargus3222
       - name: cd
         if: ${{ vars.IS_DEPLOYDED == 'true' }}
@@ -64,7 +81,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        if: ${{ vars.IS_OUTOF_LAB == 'true' }}
       - name: login
+        if: ${{ vars.IS_OUTOF_LAB == 'true' }}
         run: make login --environment-overrides GHCR_TOKEN=${{ vars.TOKEN }}  USER_NAME=fargus3222
       - name: cd
         if: ${{ vars.IS_OUTOF_LAB == 'true' }}
