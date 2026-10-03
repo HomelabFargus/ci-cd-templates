@@ -45,7 +45,7 @@ jobs:
 
 
   migrations:
-      needs: migrate_postgres
+      needs: build
       runs-on: k8s
       environment: CD
       steps:
