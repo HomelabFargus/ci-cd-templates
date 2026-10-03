@@ -61,7 +61,7 @@ jobs:
 
 
   cd:
-    needs: [Get_short_sha, build]
+    needs: build
     environment: CD
     runs-on: k8s
     steps:
@@ -77,7 +77,7 @@ jobs:
 
 
   Deploy_on_outpost:
-    needs: [Get_short_sha, build]
+    needs: build
     environment: CD
     runs-on: nlb-2
     steps:
