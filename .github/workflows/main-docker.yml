@@ -20,6 +20,20 @@ jobs:
           echo "image_tag=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
 
 
+  migrations:
+      needs: build
+      runs-on: k8s
+      environment: CD
+      steps:
+        - name: Checkout repo
+          if: ${{ vars.IS_DB_MIGRATE == 'true' }}
+          uses: actions/checkout@v4
+
+        - name: migration postgres
+          if: ${{ vars.IS_DB_MIGRATE == 'true' }}
+          run: make migrate --environment-overrides PGSSLMODE=disable PGPORT=5432 PGHOST=${{ vars.PGHOST }} PGDATABASE=${{ vars.PGDATABASE }} PGUSER=${{ vars.PGUSER }} PGPASSWORD=${{ vars.PGPASSWORD }}
+
+
   build:
     needs: Get_short_sha
     runs-on: k8s
@@ -44,18 +58,6 @@ jobs:
         run: make push_latest --environment-overrides IMAGE_NAME=${{ github.event.repository.name }} IMAGE_TAG=${{ needs.Get_short_sha.outputs.image_tag }}
 
 
-  migrations:
-      needs: build
-      runs-on: k8s
-      environment: CD
-      steps:
-        - name: Checkout repo
-          if: ${{ vars.IS_DB_MIGRATE == 'true' }}
-          uses: actions/checkout@v4
-
-        - name: migration postgres
-          if: ${{ vars.IS_DB_MIGRATE == 'true' }}
-          run: make migrate --environment-overrides PGSSLMODE=disable PGPORT=5432 PGHOST=${{ vars.PGHOST }} PGDATABASE=${{ vars.PGDATABASE }} PGUSER=${{ vars.PGUSER }} PGPASSWORD=${{ vars.PGPASSWORD }}
 
 
   cd:
