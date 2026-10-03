@@ -21,7 +21,7 @@ jobs:
 
 
   migrations:
-      needs: build
+      needs: Get_short_sha
       runs-on: k8s
       environment: CD
       steps:
@@ -35,7 +35,7 @@ jobs:
 
 
   build:
-    needs: Get_short_sha
+    needs: migrations
     runs-on: k8s
     environment: CD
     steps:
