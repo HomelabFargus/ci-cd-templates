@@ -55,7 +55,7 @@ jobs:
 
         - name: migration postgres
           if: ${{ vars.IS_DB_MIGRATE == 'true' }}
-          run: make migrate --environment-overrides PGSSLMODE=disable PGPORT=5432 PGHOST=${{ vars.postgres-host }} PGDATABASE=${{ vars.postgres-database }} PGUSER=${{ vars.postgres-user }} PGPASSWORD=${{ vars.postgres-password }}
+          run: make migrate --environment-overrides PGSSLMODE=disable PGPORT=5432 PGHOST=${{ vars.PGHOST }} PGDATABASE=${{ vars.PGDATABASE }} PGUSER=${{ vars.PGUSER }} PGPASSWORD=${{ vars.PGPASSWORD }}
 
 
   cd:
