@@ -4,26 +4,9 @@ on:
 
 
 jobs:
-  Down:
+  Deploy:
     runs-on: nlb-2
     steps:
       - uses: actions/checkout@v4
-      - name: down
-        run: make down
-
-
-  Clean:
-    needs: Down
-    runs-on: nlb-2
-    steps:
-      - uses: actions/checkout@v4
-      - name: clean
-        run: make clean
-
-  Up:
-    needs: Clean
-    runs-on: nlb-2
-    steps:
-      - uses: actions/checkout@v4
-      - name: up
-        run: make up
+      - name: deploy
+        run: make deploy
